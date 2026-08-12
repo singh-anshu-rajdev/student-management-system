@@ -49,6 +49,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/register").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/api/student/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
