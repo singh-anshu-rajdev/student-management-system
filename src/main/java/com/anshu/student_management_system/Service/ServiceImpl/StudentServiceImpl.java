@@ -5,7 +5,6 @@ import com.anshu.student_management_system.DTO.CourseResponseDTO;
 import com.anshu.student_management_system.DTO.StudentProfileUpdateDTO;
 import com.anshu.student_management_system.DTO.StudentResponseDTO;
 import com.anshu.student_management_system.Entities.Address;
-import com.anshu.student_management_system.Entities.Course;
 import com.anshu.student_management_system.Entities.Student;
 import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
 import com.anshu.student_management_system.ExceptionHandler.ErrorCode;
@@ -15,16 +14,12 @@ import com.anshu.student_management_system.Repositories.StudentRepository;
 import com.anshu.student_management_system.Service.StudentService;
 import com.anshu.student_management_system.Utilities.AddressType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-
-import static com.anshu.student_management_system.ExceptionHandler.ErrorCode.ERR_AP_2007;
 
 @Service
 public class StudentServiceImpl implements StudentService {
