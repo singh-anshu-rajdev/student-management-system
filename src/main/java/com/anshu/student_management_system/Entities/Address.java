@@ -1,6 +1,7 @@
 package com.anshu.student_management_system.Entities;
 
 
+import com.anshu.student_management_system.Utilities.AddressType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
