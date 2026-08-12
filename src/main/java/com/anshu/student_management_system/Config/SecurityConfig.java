@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/register").permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
-                        .requestMatchers("/test/get").hasAuthority("ADMIN")
+                        .requestMatchers("/api/student/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,9 +1,6 @@
 package com.anshu.student_management_system.Controller;
 
-import com.anshu.student_management_system.DTO.LoginRequestDTO;
-import com.anshu.student_management_system.DTO.LoginResponseDTO;
-import com.anshu.student_management_system.DTO.RegistrationRequestDTO;
-import com.anshu.student_management_system.DTO.RegistrationResponseDTO;
+import com.anshu.student_management_system.DTO.*;
 import com.anshu.student_management_system.Entities.UserEntity;
 import com.anshu.student_management_system.Service.AdminService;
 import com.anshu.student_management_system.Service.JwtService;
@@ -17,10 +14,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -50,5 +46,30 @@ public class AdminController {
     public ResponseEntity<LoginResponseDTO> generateTokenFromRefreshToken(@RequestBody LoginRequestDTO loginRequestDTO){
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDTO.getUserName(),loginRequestDTO.getPassword()));
         return new ResponseEntity<>( jwtService.generateTokenFromRefreshToken((UserDetails) authentication.getPrincipal(), loginRequestDTO.getRefreshToken()), HttpStatus.OK);
+    }
+
+    @PostMapping("/students")
+    public ResponseEntity<StudentResponseDTO> admitStudent(@RequestBody StudentAdmissionRequestDTO request) {
+        return new ResponseEntity<>(adminService.admitStudent(request),HttpStatus.CREATED);
+    }
+
+    @PostMapping("/courses")
+    public ResponseEntity<CourseResponseDTO> createCourse(@RequestBody CourseRequestDTO request) {
+        return new ResponseEntity<>(adminService.createCourse(request),HttpStatus.CREATED);
+    }
+
+    @PostMapping("/courses/assign")
+    public ResponseEntity<CourseResponseDTO> assignCourse(@RequestBody CourseAssignmentRequestDTO request) {
+        return new ResponseEntity<>(adminService.assignCourse(request), HttpStatus.OK);
+    }
+
+    @GetMapping("/students/search")
+    public ResponseEntity<List<StudentResponseDTO>> searchStudents(@RequestParam String name) {
+        return new ResponseEntity<>(adminService.searchStudents(name), HttpStatus.OK);
+    }
+
+    @GetMapping("/courses/{courseId}/students")
+    public ResponseEntity<List<StudentResponseDTO>> getStudentsByCourse(@PathVariable Long courseId) {
+        return new ResponseEntity<>(adminService.getStudentsByCourse(courseId), HttpStatus.OK);
     }
 }
