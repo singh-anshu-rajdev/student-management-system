@@ -47,6 +47,9 @@ public class StudentServiceImpl implements StudentService {
         student.setName(request.getName());
         student.setDateOfBirth(request.getDateOfBirth());
         student.setGender(request.getGender());
+        student.setEmail(request.getEmail());
+        student.setMobileNumber(request.getMobileNumber());
+        student.setParentsNames(request.getParentsNames());
 
         Student savedStudent = studentRepository.save(student);
 
@@ -57,6 +60,9 @@ public class StudentServiceImpl implements StudentService {
         response.setDateOfBirth(savedStudent.getDateOfBirth());
         response.setGender(savedStudent.getGender());
         response.setStudentCode(savedStudent.getStudentCode());
+        response.setEmail(savedStudent.getEmail());
+        response.setMobileNumber(savedStudent.getMobileNumber());
+        response.setParentsNames(savedStudent.getParentsNames());
 
         response = updateAddress(savedStudent, request, response);
 
@@ -146,16 +152,10 @@ public class StudentServiceImpl implements StudentService {
         return student.getCourses()
                 .stream()
                 .filter(course ->
-                        course.getTopics() != null &&
-                                course.getTopics()
-                                        .toLowerCase()
-                                        .contains(topic.toLowerCase())
-                )
+                        course.getTopics() != null && course.getTopics().toLowerCase().contains(topic.toLowerCase()))
                 .map(course -> {
 
-                    CourseResponseDTO response =
-                            new CourseResponseDTO();
-
+                    CourseResponseDTO response = new CourseResponseDTO();
                     response.setCourseId(course.getId());
                     response.setCourseName(course.getCourseName());
                     response.setDescription(course.getDescription());

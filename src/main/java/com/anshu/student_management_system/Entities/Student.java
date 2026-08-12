@@ -37,6 +37,15 @@ public class Student {
     @Column(name = "student_code", nullable = false, unique = true, length = 50)
     private String studentCode;
 
+    @Column(unique = true, length = 100)
+    private String email;
+
+    @Column(name = "mobile_number", length = 20)
+    private String mobileNumber;
+
+    @Column(name = "parents_names", length = 200)
+    private String parentsNames;
+
     @OneToMany(
             mappedBy = "student",
             cascade = CascadeType.ALL,

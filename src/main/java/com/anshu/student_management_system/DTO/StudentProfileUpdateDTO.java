@@ -13,5 +13,8 @@ public class StudentProfileUpdateDTO {
     private String name;
     private LocalDate dateOfBirth;
     private String gender;
+    private String email;
+    private String mobileNumber;
+    private String parentsNames;
     private List<AddressRequestDTO> address;
 }

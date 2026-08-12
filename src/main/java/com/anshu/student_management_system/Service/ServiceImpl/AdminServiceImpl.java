@@ -78,6 +78,9 @@ public class AdminServiceImpl implements AdminService {
         student.setDateOfBirth(request.getDateOfBirth());
         student.setGender(request.getGender());
         student.setStudentCode(request.getStudentCode());
+        student.setEmail(request.getEmail());
+        student.setMobileNumber(request.getMobileNumber());
+        student.setParentsNames(request.getParentsNames());
 
         if (request.getAddresses() != null) {
             List<Address> addresses = request.getAddresses()
@@ -106,6 +109,9 @@ public class AdminServiceImpl implements AdminService {
         response.setDateOfBirth(savedStudent.getDateOfBirth());
         response.setGender(savedStudent.getGender());
         response.setStudentCode(savedStudent.getStudentCode());
+        response.setEmail(savedStudent.getEmail());
+        response.setMobileNumber(savedStudent.getMobileNumber());
+        response.setParentsNames(savedStudent.getParentsNames());
 
         List<AddressRequestDTO> addressResponses = new ArrayList<>();
 
@@ -169,6 +175,22 @@ public class AdminServiceImpl implements AdminService {
                     response.setDateOfBirth(student.getDateOfBirth());
                     response.setGender(student.getGender());
                     response.setStudentCode(student.getStudentCode());
+                    response.setEmail(student.getEmail());
+                    response.setMobileNumber(student.getMobileNumber());
+                    response.setParentsNames(student.getParentsNames());
+
+                    List<AddressRequestDTO> addressResponses = new ArrayList<>();
+                    student.getAddresses().forEach(address -> {
+                        AddressRequestDTO addressResponse = new AddressRequestDTO();
+                        addressResponse.setId(address.getId());
+                        addressResponse.setAddressType(address.getAddressType().toString());
+                        addressResponse.setAddressLine(address.getAddressLine());
+                        addressResponse.setCity(address.getCity());
+                        addressResponse.setState(address.getState());
+                        addressResponse.setPostalCode(address.getPostalCode());
+                        addressResponses.add(addressResponse);
+                    });
+                    response.setAddressRequestDTOList(addressResponses);
 
                     return response;
 
@@ -197,6 +219,9 @@ public class AdminServiceImpl implements AdminService {
                     response.setDateOfBirth(student.getDateOfBirth());
                     response.setGender(student.getGender());
                     response.setStudentCode(student.getStudentCode());
+                    response.setEmail(student.getEmail());
+                    response.setMobileNumber(student.getMobileNumber());
+                    response.setParentsNames(student.getParentsNames());
 
                     return response;
 

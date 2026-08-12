@@ -14,5 +14,8 @@ public class StudentAdmissionRequestDTO {
     private LocalDate dateOfBirth;
     private String gender;
     private String studentCode;
+    private String email;
+    private String mobileNumber;
+    private String parentsNames;
     private List<AddressRequestDTO> addresses;
 }
