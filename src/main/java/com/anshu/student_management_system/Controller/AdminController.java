@@ -68,7 +68,7 @@ public class AdminController {
             summary = "Admit a student",
             description = "Creates a new student in the system"
     )
-    @PostMapping("/students")
+    @PostMapping("/admitStudents")
     public ResponseEntity<StudentResponseDTO> admitStudent(@RequestBody StudentAdmissionRequestDTO request) {
         return new ResponseEntity<>(adminService.admitStudent(request),HttpStatus.CREATED);
     }
@@ -77,8 +77,8 @@ public class AdminController {
             summary = "Create a course",
             description = "Creates a new course"
     )
-    @PostMapping("/courses")
-    public ResponseEntity<CourseResponseDTO> createCourse(@RequestBody CourseRequestDTO request) {
+    @PostMapping("/createCourses")
+    public ResponseEntity<CourseResponseDTO> createCourse(@RequestBody CreateCourseRequestDTO request) {
         return new ResponseEntity<>(adminService.createCourse(request),HttpStatus.CREATED);
     }
 
@@ -107,8 +107,8 @@ public class AdminController {
             description = "Returns all students assigned to a particular course"
     )
     @SecurityRequirement(name = "Bearer Authentication")
-    @GetMapping("/courses/{courseId}/students")
-    public ResponseEntity<List<StudentResponseDTO>> getStudentsByCourse(@PathVariable Long courseId) {
+    @GetMapping("/courses/students")
+    public ResponseEntity<List<StudentResponseDTO>> getStudentsByCourse(@RequestParam Long courseId) {
         return new ResponseEntity<>(adminService.getStudentsByCourse(courseId), HttpStatus.OK);
     }
 }

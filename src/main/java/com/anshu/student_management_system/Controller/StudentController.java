@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -30,9 +31,10 @@ public class StudentController {
             summary = "Update student profile",
             description = "Updates the profile details of the authenticated student"
     )
-    @PutMapping("/profile")
-    public ResponseEntity<StudentResponseDTO> updateProfile(@RequestBody StudentProfileUpdateDTO request) {
-        return new ResponseEntity<>(studentService.updateProfile(request), HttpStatus.OK);
+    @PutMapping("/profile/update")
+    public ResponseEntity<StudentResponseDTO> updateProfile(@RequestHeader("studentCode") String studentCode
+            , @RequestHeader("dateOfBirth") LocalDate dateOfBirth, @RequestBody StudentProfileUpdateDTO request) {
+        return new ResponseEntity<>(studentService.updateProfile(studentCode,dateOfBirth,request), HttpStatus.OK);
     }
 
     @Operation(
@@ -40,17 +42,19 @@ public class StudentController {
             description = "Search courses using a topic"
     )
     @GetMapping("/courses/search")
-    public ResponseEntity<List<CourseResponseDTO>> searchCourses(@RequestParam String topic) {
-        return new ResponseEntity<>(studentService.searchCourses(topic), HttpStatus.OK);
+    public ResponseEntity<List<CourseResponseDTO>> searchCourses(@RequestHeader("studentCode") String studentCode
+            , @RequestHeader("dateOfBirth") LocalDate dateOfBirth, @RequestParam String topic) {
+        return new ResponseEntity<>(studentService.searchCourses(studentCode,dateOfBirth,topic), HttpStatus.OK);
     }
 
     @Operation(
             summary = "Leave a course",
             description = "Allows a student to leave an assigned course"
     )
-    @DeleteMapping("/courses/{courseId}")
-    public ResponseEntity<String> leaveCourse(@PathVariable Long courseId) {
-        return new ResponseEntity<>(studentService.leaveCourse(courseId), HttpStatus.OK);
+    @DeleteMapping("leave/courses")
+    public ResponseEntity<String> leaveCourse(@RequestHeader("studentCode") String studentCode
+            , @RequestHeader("dateOfBirth") LocalDate dateOfBirth, @RequestParam Long courseId) {
+        return new ResponseEntity<>(studentService.leaveCourse(studentCode,dateOfBirth,courseId), HttpStatus.OK);
     }
 
 }

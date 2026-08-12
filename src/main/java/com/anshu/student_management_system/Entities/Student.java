@@ -37,7 +37,6 @@ public class Student {
     @Column(name = "student_code", nullable = false, unique = true, length = 50)
     private String studentCode;
 
-    // Student -> Address
     @OneToMany(
             mappedBy = "student",
             cascade = CascadeType.ALL,
@@ -45,7 +44,6 @@ public class Student {
     )
     private List<Address> addresses = new ArrayList<>();
 
-    // Student <-> Course
     @ManyToMany
     @JoinTable(
             name = "student_courses",

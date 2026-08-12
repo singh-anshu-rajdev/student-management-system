@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,4 +14,5 @@ public class StudentAdmissionRequestDTO {
     private LocalDate dateOfBirth;
     private String gender;
     private String studentCode;
+    private List<AddressRequestDTO> addresses;
 }

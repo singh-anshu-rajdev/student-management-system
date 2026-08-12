@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,5 +18,6 @@ public class StudentResponseDTO {
     private LocalDate dateOfBirth;
     private String gender;
     private String studentCode;
+    private List<AddressRequestDTO> addressRequestDTOList;
     private String statusMessage;
 }

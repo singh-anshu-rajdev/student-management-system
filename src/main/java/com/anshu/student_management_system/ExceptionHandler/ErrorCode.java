@@ -12,7 +12,7 @@ public enum ErrorCode implements ErrorHandle {
     ERR_AP_2007(2007,"Student Code is required"),
     ERR_AP_2008(2008,"Date of birth is required"),
     ERR_AP_2009(2009,"Invalid date of birth format. Expected yyyy-MM-dd"),
-    ERR_AP_2010(2010,"Invalid student code or date of birt"),
+    ERR_AP_2010(2010,"Invalid student code or date of birth"),
     ;
 
     private final Integer errCode;

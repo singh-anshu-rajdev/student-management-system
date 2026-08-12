@@ -10,7 +10,7 @@ public interface AdminService {
 
     public StudentResponseDTO admitStudent(StudentAdmissionRequestDTO request);
 
-    public CourseResponseDTO createCourse(CourseRequestDTO request);
+    public CourseResponseDTO createCourse(CreateCourseRequestDTO request);
 
     public CourseResponseDTO assignCourse(CourseAssignmentRequestDTO request);
 

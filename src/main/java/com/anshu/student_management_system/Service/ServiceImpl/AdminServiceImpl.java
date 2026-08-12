@@ -1,6 +1,7 @@
 package com.anshu.student_management_system.Service.ServiceImpl;
 
 import com.anshu.student_management_system.DTO.*;
+import com.anshu.student_management_system.Entities.Address;
 import com.anshu.student_management_system.Entities.Course;
 import com.anshu.student_management_system.Entities.Student;
 import com.anshu.student_management_system.Entities.UserEntity;
@@ -10,11 +11,13 @@ import com.anshu.student_management_system.Repositories.CourseRepository;
 import com.anshu.student_management_system.Repositories.StudentRepository;
 import com.anshu.student_management_system.Repositories.UserEntityRepository;
 import com.anshu.student_management_system.Service.AdminService;
+import com.anshu.student_management_system.Utilities.AddressType;
 import com.anshu.student_management_system.Utilities.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.anshu.student_management_system.ExceptionHandler.ErrorCode.*;
@@ -71,11 +74,28 @@ public class AdminServiceImpl implements AdminService {
         }
 
         Student student = new Student();
-
         student.setName(request.getName());
         student.setDateOfBirth(request.getDateOfBirth());
         student.setGender(request.getGender());
         student.setStudentCode(request.getStudentCode());
+
+        if (request.getAddresses() != null) {
+            List<Address> addresses = request.getAddresses()
+                    .stream()
+                    .map(addressRequest -> {
+
+                        Address address = new Address();
+                        address.setAddressType(AddressType.valueOf(addressRequest.getAddressType()));
+                        address.setAddressLine(addressRequest.getAddressLine());
+                        address.setCity(addressRequest.getCity());
+                        address.setState(addressRequest.getState());
+                        address.setPostalCode(addressRequest.getPostalCode());
+                        address.setStudent(student);
+                        return address;
+                    })
+                    .toList();
+            student.setAddresses(addresses);
+        }
 
         Student savedStudent = studentRepository.save(student);
 
@@ -86,6 +106,21 @@ public class AdminServiceImpl implements AdminService {
         response.setDateOfBirth(savedStudent.getDateOfBirth());
         response.setGender(savedStudent.getGender());
         response.setStudentCode(savedStudent.getStudentCode());
+
+        List<AddressRequestDTO> addressResponses = new ArrayList<>();
+
+        savedStudent.getAddresses().forEach(address -> {
+            AddressRequestDTO addressResponse = new AddressRequestDTO();
+            addressResponse.setId(address.getId());
+            addressResponse.setAddressType(address.getAddressType().toString());
+            addressResponse.setAddressLine(address.getAddressLine());
+            addressResponse.setCity(address.getCity());
+            addressResponse.setState(address.getState());
+            addressResponse.setPostalCode(address.getPostalCode());
+            addressResponses.add(addressResponse);
+        });
+
+        response.setAddressRequestDTOList(addressResponses);
         response.setStatusMessage("Student admitted successfully");
 
         return response;
@@ -109,12 +144,10 @@ public class AdminServiceImpl implements AdminService {
 
         CourseResponseDTO response = new CourseResponseDTO();
 
-        response.setId(course.getId());
+        response.setCourseId(course.getId());
         response.setCourseName(course.getCourseName());
         response.setDescription(course.getDescription());
-        response.setCourseType(course.getCourseType());
-        response.setDuration(course.getDuration());
-        response.setTopics(course.getTopics());
+        response.setStudentCode(student.getStudentCode());
         response.setStatusMessage("Course assigned successfully");
 
         return response;
@@ -172,28 +205,55 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public CourseResponseDTO createCourse(CourseRequestDTO request) {
+    public CourseResponseDTO createCourse(CreateCourseRequestDTO request) {
 
-        Course course = new Course();
+        List<String> alreadyExistingCourses = new ArrayList<>();
+        List<Course> coursesToCreate = new ArrayList<>();
 
-        course.setCourseName(request.getCourseName());
-        course.setDescription(request.getDescription());
-        course.setCourseType(request.getCourseType());
-        course.setDuration(request.getDuration());
-        course.setTopics(request.getTopics());
+        request.getCreateCourseRequestDTOList()
+                .forEach(createCourseRequestDTO -> {
 
-        Course savedCourse = courseRepository.save(course);
+                    if (courseRepository.existsByCourseName(createCourseRequestDTO.getCourseName())) {
+                        alreadyExistingCourses.add(createCourseRequestDTO.getCourseName());
+                    } else {
+                        Course course = new Course();
+                        course.setCourseName(createCourseRequestDTO.getCourseName());
+                        course.setDescription(createCourseRequestDTO.getDescription());
+                        course.setCourseType(createCourseRequestDTO.getCourseType());
+                        course.setDuration(createCourseRequestDTO.getDuration());
+                        course.setTopics(createCourseRequestDTO.getTopics());
+                        coursesToCreate.add(course);
+                    }
+                });
+
+
+        List<Course> savedCourses = courseRepository.saveAll(coursesToCreate);
+        List<String> createdCourses = savedCourses.stream()
+                .map(Course::getCourseName)
+                .toList();
 
         CourseResponseDTO response = new CourseResponseDTO();
 
-        response.setId(savedCourse.getId());
-        response.setCourseName(savedCourse.getCourseName());
-        response.setDescription(savedCourse.getDescription());
-        response.setCourseType(savedCourse.getCourseType());
-        response.setDuration(savedCourse.getDuration());
-        response.setTopics(savedCourse.getTopics());
-        response.setStatusMessage("Course created successfully");
+        response.setCourseName(String.join(", ", createdCourses));
 
+        if (!alreadyExistingCourses.isEmpty() && !createdCourses.isEmpty()) {
+            response.setStatusMessage(
+                    "Courses created successfully: "
+                            + String.join(", ", createdCourses)
+                            + ". The following courses already exist and were skipped: "
+                            + String.join(", ", alreadyExistingCourses)
+            );
+        } else if (!alreadyExistingCourses.isEmpty()) {
+            response.setStatusMessage(
+                    "No courses were created. The following courses already exist: "
+                            + String.join(", ", alreadyExistingCourses)
+            );
+        } else {
+            response.setStatusMessage(
+                    "Courses created successfully: "
+                            + String.join(", ", createdCourses)
+            );
+        }
         return response;
     }
 }

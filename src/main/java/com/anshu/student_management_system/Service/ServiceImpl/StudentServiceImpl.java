@@ -1,21 +1,30 @@
 package com.anshu.student_management_system.Service.ServiceImpl;
 
+import com.anshu.student_management_system.DTO.AddressRequestDTO;
 import com.anshu.student_management_system.DTO.CourseResponseDTO;
 import com.anshu.student_management_system.DTO.StudentProfileUpdateDTO;
 import com.anshu.student_management_system.DTO.StudentResponseDTO;
+import com.anshu.student_management_system.Entities.Address;
 import com.anshu.student_management_system.Entities.Course;
 import com.anshu.student_management_system.Entities.Student;
 import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
 import com.anshu.student_management_system.ExceptionHandler.ErrorCode;
+import com.anshu.student_management_system.Repositories.AddressRepository;
 import com.anshu.student_management_system.Repositories.CourseRepository;
 import com.anshu.student_management_system.Repositories.StudentRepository;
 import com.anshu.student_management_system.Service.StudentService;
+import com.anshu.student_management_system.Utilities.AddressType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static com.anshu.student_management_system.ExceptionHandler.ErrorCode.ERR_AP_2007;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -24,13 +33,21 @@ public class StudentServiceImpl implements StudentService {
     private StudentRepository studentRepository;
 
     @Autowired
+    private AddressRepository addressRepository;
+
+    @Autowired
     private CourseRepository courseRepository;
 
 
     @Override
-    public StudentResponseDTO updateProfile(StudentProfileUpdateDTO request) {
+    public StudentResponseDTO updateProfile(String studentCode, LocalDate dateOfBirth, StudentProfileUpdateDTO request) {
 
-        Student student = getLoggedInStudent();
+        Student student = getLoggedInStudent(studentCode);
+
+        student.setName(request.getName());
+        student.setDateOfBirth(request.getDateOfBirth());
+        student.setGender(request.getGender());
+
         Student savedStudent = studentRepository.save(student);
 
         StudentResponseDTO response = new StudentResponseDTO();
@@ -40,15 +57,92 @@ public class StudentServiceImpl implements StudentService {
         response.setDateOfBirth(savedStudent.getDateOfBirth());
         response.setGender(savedStudent.getGender());
         response.setStudentCode(savedStudent.getStudentCode());
+
+        response = updateAddress(savedStudent, request, response);
+
         response.setStatusMessage("Profile updated successfully");
+
         return response;
     }
 
+    private StudentResponseDTO updateAddress(Student savedStudent, StudentProfileUpdateDTO request, StudentResponseDTO response) {
+        List<AddressRequestDTO> updatedAddresses = new ArrayList<>();
+
+        if (request.getAddress() != null) {
+
+            request.getAddress().forEach(addressRequest -> {
+
+                Optional<Address> address = savedStudent.getAddresses()
+                        .stream()
+                        .filter(a -> a.getId().equals(addressRequest.getId()))
+                        .findFirst();
+
+                if (address.isPresent()) {
+
+                    Address existingAddress = address.get();
+
+                    existingAddress.setAddressType(
+                            AddressType.valueOf(addressRequest.getAddressType())
+                    );
+                    existingAddress.setAddressLine(addressRequest.getAddressLine());
+                    existingAddress.setCity(addressRequest.getCity());
+                    existingAddress.setState(addressRequest.getState());
+                    existingAddress.setPostalCode(addressRequest.getPostalCode());
+
+                    addressRepository.save(existingAddress);
+
+                    AddressRequestDTO addressResponse = new AddressRequestDTO();
+
+                    addressResponse.setId(existingAddress.getId());
+                    addressResponse.setAddressType(existingAddress.getAddressType().name());
+                    addressResponse.setAddressLine(existingAddress.getAddressLine());
+                    addressResponse.setCity(existingAddress.getCity());
+                    addressResponse.setState(existingAddress.getState());
+                    addressResponse.setPostalCode(existingAddress.getPostalCode());
+
+                    updatedAddresses.add(addressResponse);
+                }
+            });
+        }
+
+        response.setAddressRequestDTOList(updatedAddresses);
+        return response;
+    }
+
+    private StudentResponseDTO updateAddressResponse(Student savedStudent, StudentProfileUpdateDTO request, StudentResponseDTO response) {
+
+        List<AddressRequestDTO> updatedAddresses = new ArrayList<>();
+        if (request.getAddress() != null) {
+            request.getAddress().forEach(addressRequest -> {
+                Optional<Address> address = savedStudent.getAddresses()
+                        .stream()
+                        .filter(a -> a.getId().equals(addressRequest.getId()))
+                        .findFirst();
+
+                if (address.isPresent()) {
+
+                    Address existingAddress = address.get();
+                    AddressRequestDTO addressResponse = new AddressRequestDTO();
+
+                    addressResponse.setId(existingAddress.getId());
+                    addressResponse.setAddressType(existingAddress.getAddressType().name());
+                    addressResponse.setAddressLine(existingAddress.getAddressLine());
+                    addressResponse.setCity(existingAddress.getCity());
+                    addressResponse.setState(existingAddress.getState());
+                    addressResponse.setPostalCode(existingAddress.getPostalCode());
+                    updatedAddresses.add(addressResponse);
+                }
+            });
+        }
+
+        response.setAddressRequestDTOList(updatedAddresses);
+        return response;
+    }
 
     @Override
-    public List<CourseResponseDTO> searchCourses(String topic) {
+    public List<CourseResponseDTO> searchCourses(String studentCode, LocalDate dateOfBirth, String topic) {
 
-        Student student = getLoggedInStudent();
+        Student student = getLoggedInStudent(studentCode);
         return student.getCourses()
                 .stream()
                 .filter(course ->
@@ -62,7 +156,7 @@ public class StudentServiceImpl implements StudentService {
                     CourseResponseDTO response =
                             new CourseResponseDTO();
 
-                    response.setId(course.getId());
+                    response.setCourseId(course.getId());
                     response.setCourseName(course.getCourseName());
                     response.setDescription(course.getDescription());
                     response.setCourseType(course.getCourseType());
@@ -76,9 +170,9 @@ public class StudentServiceImpl implements StudentService {
 
 
     @Override
-    public String leaveCourse(Long courseId) {
+    public String leaveCourse(String studentCode, LocalDate dateOfBirth, Long courseId) {
 
-        Student student = getLoggedInStudent();
+        Student student = getLoggedInStudent(studentCode);
         boolean removed = student.getCourses().removeIf(course -> course.getId().equals(courseId));
         if (!removed) {
             throw new CustomValidationException(ErrorCode.ERR_AP_2006);
@@ -87,12 +181,7 @@ public class StudentServiceImpl implements StudentService {
         return "Course has been successfully removed from the student's enrolled courses.";
     }
 
-    private Student getLoggedInStudent() {
-        String studentCode = Objects.requireNonNull(SecurityContextHolder
-                        .getContext()
-                        .getAuthentication())
-                        .getName();
-
+    private Student getLoggedInStudent(String studentCode) {
         return studentRepository.findByStudentCode(studentCode).orElseThrow(() ->
                         new CustomValidationException(ErrorCode.ERR_AP_2003));
     }
