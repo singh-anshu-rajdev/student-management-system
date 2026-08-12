@@ -1,0 +1,142 @@
+{
+  "info": {
+    "_postman_id": "c4d82c20-504f-4dae-99a6-52909241cc62",
+    "name": "student-management-system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38353774"
+  },
+  "item": [
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "/admitStudents",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/createCourses",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/courses/assign",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/students/search",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/courses/students",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "/profile/update",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/courses/search",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/leave/courses",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "studentCode",
+                "value": "STU001",
+                "type": "text"
+              },
+              {
+                "key": "dateOfBirth",
+                "value": "2000-08-10",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "localhost:8080/api/student/leave/courses?courseId=1",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "student",
+                "leave",
+                "courses"
+              ],
+              "query": [
+                {
+                  "key": "studentCode",
+                  "value": "STU001",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "dateOfBirth",
+                  "value": "2000-05-11",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "courseId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "/register",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "/login",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
