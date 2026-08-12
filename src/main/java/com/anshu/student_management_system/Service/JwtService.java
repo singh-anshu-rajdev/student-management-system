@@ -1,5 +1,6 @@
 package com.anshu.student_management_system.Service;
 
+import com.anshu.student_management_system.DTO.LoginResponseDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoder;
@@ -15,16 +16,11 @@ import java.util.function.Function;
 
 public interface JwtService {
 
-
     public String getUserName(String token);
-
 
     public boolean isTokenValid(String token, UserDetails userDetails);
 
+    public LoginResponseDTO login(UserDetails userDetails);
 
-    public String generateToken(UserDetails userDetails);
-
-
-
-
+    public LoginResponseDTO generateTokenFromRefreshToken(UserDetails userDetails, String refreshToken);
 }

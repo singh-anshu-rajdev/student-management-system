@@ -1,5 +1,8 @@
 package com.anshu.student_management_system.Service.ServiceImpl;
 
+import com.anshu.student_management_system.DTO.LoginResponseDTO;
+import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
+import com.anshu.student_management_system.ExceptionHandler.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoder;
@@ -24,6 +27,9 @@ public class JwtServiceImpl implements JwtService {
     @Value("${security.jwt.expiration-time}")
     private Long jwtExpiration;
 
+    @Value("${security.jwt.refresh-expiration-time}")
+    private Long refreshTokenExpiration;
+
     public String getUserName(String token) {
         return extractClaims(token,claim -> claim.get("username",String.class));
     }
@@ -44,10 +50,16 @@ public class JwtServiceImpl implements JwtService {
         return extractClaims(token, Claims::getExpiration).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public LoginResponseDTO login(UserDetails userDetails) {
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setToken(generateToken(userDetails));
+        loginResponseDTO.setRefreshToken(generateRefreshToken(userDetails));
+        return loginResponseDTO;
+    }
+
+    private String generateToken(UserDetails userDetails) {
         Map<String,Object> claims = new HashMap<>();
         claims.put("username",userDetails.getUsername());
-        claims.put("extraKey","extraValue");
         return buildToken(claims);
     }
 
@@ -64,47 +76,36 @@ public class JwtServiceImpl implements JwtService {
         return Keys.hmacShaKeyFor(signInKey);
     }
 
-//    public Boolean isTokenValid(String token, UserDetails userDetails){
-//        return Objects.equals(userDetails.getUsername(), getUserName(token)) && !isTokenExpired(token);
-//    }
-//
-//    public String getUserName(String token){
-//        return extractClaim(token, claim -> claim.get("username", String.class));
-//    }
-//
-//    private Boolean isTokenExpired(String token){
-//        return extractClaim(token, claims -> claims.getExpiration()).before(new Date());
-//    }
-//
-//    private <T> T extractClaim(String token, Function<Claims,T> claimsResolver){
-//        Claims claims = extractAllClaims(token);
-//        return claimsResolver.apply(claims);
-//    }
-//
-//
-//    private Claims extractAllClaims(String token){
-//        return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
-//    }
-//
-//    public String generateToken(UserDetails userDetails){
-//        Map<String,Object> claims = new HashMap<>();
-//        claims.put("username",userDetails.getUsername());
-//        claims.put("extraKey","extraValue");
-//        return buildToken(claims);
-//    }
-//
-//    private String buildToken(Map<String, Object> claims){
-//        return Jwts.builder().setClaims(claims)
-//                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-//                .setIssuedAt(new Date(System.currentTimeMillis()))
-//                .signWith(getSignInKey())
-//                .compact();
-//    }
-//
-//    private Key getSignInKey(){
-//        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-//        return Keys.hmacShaKeyFor(keyBytes);
-//    }
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", userDetails.getUsername());
+        claims.put("tokenType", "REFRESH");
+        return buildRefreshToken(claims);
+    }
 
+    private String buildRefreshToken(Map<String, Object> claims) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .signWith(getSignInkey())
+                .compact();
+    }
+
+    public LoginResponseDTO generateTokenFromRefreshToken(UserDetails userDetails, String refreshToken) {
+        ;
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setToken(generateTokenWithRefreshToken(userDetails, refreshToken));
+        loginResponseDTO.setRefreshToken(generateRefreshToken(userDetails));
+        return loginResponseDTO;
+    }
+
+    private String generateTokenWithRefreshToken(UserDetails userDetails, String refreshToken) {
+        String username = getUserName(refreshToken);
+        if (!isTokenValid(refreshToken,userDetails)) {
+            throw new CustomValidationException(ErrorCode.ERR_AP_2001);
+        }
+        return generateToken(userDetails);
+    }
 
 }

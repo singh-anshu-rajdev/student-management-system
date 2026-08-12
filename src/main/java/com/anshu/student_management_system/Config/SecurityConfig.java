@@ -46,8 +46,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                 auth-> auth
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/test/register").permitAll()
-                        .requestMatchers("/test/login").permitAll()
+                        .requestMatchers("/api/admin/register").permitAll()
+                        .requestMatchers("/api/admin/login").permitAll()
                         .requestMatchers("/test/get").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
