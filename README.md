@@ -296,8 +296,8 @@ The database configuration is available in:
 Example configuration:
 
     spring.datasource.url=jdbc:h2:mem:studentdb
-    spring.datasource.username=sa
-    spring.datasource.password=
+    spring.datasource.username=anshu
+    spring.datasource.password=password
 
 The exact values should always be taken from the project's `application.properties`.
 
@@ -332,21 +332,6 @@ Example queries:
     SELECT * FROM COURSE;
 
     SELECT * FROM STUDENT_COURSES;
-
----
-
-## Initial Data
-
-Initial application data is provided through:
-
-    src/main/resources/data.sql
-
-The script is executed during application startup and can be used to initialize:
-
-- Administrator user
-- Initial courses
-
-Therefore, no manual database setup is required before starting the application.
 
 ---
 
