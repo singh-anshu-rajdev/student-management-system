@@ -1,8 +1,8 @@
 # Student Management System
 
-A Spring Boot based Student Management System developed as part of a backend development assignment.
+A Spring Boot based Student Management System developed as an interview assignment.
 
-The application provides functionality for administrator management, student admission, course management, course assignment, student profile management and course search.
+The application provides separate Admin and Student functionality with JWT-based authentication, role-based authorization, AOP-based student validation, H2 database persistence, Swagger/OpenAPI documentation, DTO-based API communication and global exception handling.
 
 ---
 
@@ -10,11 +10,12 @@ The application provides functionality for administrator management, student adm
 
 - Java 21
 - Spring Boot
+- Spring Web MVC
+- Spring Data JPA
 - Spring Security
-- JWT Authentication
-- Spring Data JPA / Hibernate
-- H2 Database
+- JWT
 - Spring AOP
+- H2 Database
 - Swagger / OpenAPI
 - Maven
 - Lombok
@@ -23,532 +24,714 @@ The application provides functionality for administrator management, student adm
 
 ## Project Structure
 
-    student-management-system
-    │
-    ├── src
-    │   ├── main
-    │   │   ├── java
-    │   │   │   └── com.anshu.student_management_system
-    │   │   │       │
-    │   │   │       ├── Annotations
-    │   │   │       ├── Config
-    │   │   │       ├── Controller
-    │   │   │       ├── DTO
-    │   │   │       ├── Entities
-    │   │   │       ├── ExceptionHandler
-    │   │   │       ├── Repositories
-    │   │   │       ├── Service
-    │   │   │       │   └── ServiceImpl
-    │   │   │       ├── Utilities
-    │   │   │       └── StudentManagementSystemApplication
-    │   │   │
-    │   │   └── resources
-    │   │       ├── application.properties
-    │   │       └── data.sql
-    │   │
-    │   └── test
-    │
-    ├── pom.xml
-    └── README.md
+src/main/java
+|
+└── com.anshu.student_management_system
+    |
+    ├── Annotations
+    |   └── ValidateStudent
+    |
+    ├── Aspect
+    |   └── StudentValidationAspect
+    |
+    ├── Controller
+    |   ├── AuthController
+    |   ├── AdminController
+    |   └── StudentController
+    |
+    ├── DTO
+    |   ├── Request DTOs
+    |   └── Response DTOs
+    |
+    ├── Entities
+    |   ├── UserEntity
+    |   ├── Student
+    |   ├── Address
+    |   └── Course
+    |
+    ├── ExceptionHandler
+    |   ├── CustomValidationException
+    |   ├── GlobalExceptionHandler
+    |   └── ErrorCode
+    |
+    ├── Repositories
+    |   ├── UserEntityRepository
+    |   ├── StudentRepository
+    |   ├── AddressRepository
+    |   └── CourseRepository
+    |
+    ├── Service
+    |   ├── AuthService
+    |   ├── AdminService
+    |   ├── StudentService
+    |   └── JwtService
+    |
+    └── ServiceImpl
+        ├── AuthServiceImpl
+        ├── AdminServiceImpl
+        ├── StudentServiceImpl
+        └── JwtServiceImpl
 
 ---
 
 ## Application Architecture
 
-The application follows a layered architecture.
+The application follows a layered architecture:
 
-    Client
-      |
-      v
-    Controller
-      |
-      v
-    Service
-      |
-      v
-    Repository
-      |
-      v
-    JPA / Hibernate
-      |
-      v
-    H2 Database
+Client
+   |
+   v
+Controller
+   |
+   v
+Service Interface
+   |
+   v
+Service Implementation
+   |
+   v
+Repository
+   |
+   v
+Entity
+   |
+   v
+H2 Database
 
-### Layer Responsibilities
-
-- **Controller** - Handles HTTP requests and responses.
-- **Service** - Contains business logic.
-- **Repository** - Handles database operations.
-- **Entity** - Represents database tables.
-- **DTO** - Used for transferring data between application layers.
-- **ExceptionHandler** - Provides centralized exception handling.
-- **Config** - Contains application and security configuration.
-- **Utilities** - Contains enums and common application utilities.
-- **Annotations** - Contains custom annotations used by the application.
+DTOs are used for communication between the API and service layers so that database entities are not directly exposed through the APIs.
 
 ---
 
-## Security Flow
+## Authentication Flow
 
-Admin authentication is implemented using Spring Security and JWT.
+Authentication is handled through the AuthController.
 
-    Login Request
-         |
-         v
-    Admin Controller
-         |
-         v
-    Authentication Manager
-         |
-         v
-    User Repository
-         |
-         v
-    Validate Username / Password
-         |
-         v
-    JWT Service
-         |
-         v
-    Access Token
-         |
-         v
-    Client
+                    AuthController
+                         |
+          +--------------+--------------+
+          |                             |
+          v                             v
+     Admin Login                  Student Login
+          |                             |
+ Username + Password            Student Code + DOB
+          |                             |
+          v                             v
+   Validate Admin              Validate Student
+          |                             |
+          +--------------+--------------+
+                         |
+                         v
+                    Generate JWT
+                         |
+                         v
+                    Access Token
 
-For subsequent secured requests:
+### Admin Authentication
 
-    Client Request
-         |
-         v
-    JWT Filter
-         |
-         v
-    Validate JWT
-         |
-         v
-    Spring Security
-         |
-         v
-    Controller
-         |
-         v
-    Service
+Username + Password
+        |
+        v
+UserEntity
+        |
+        v
+Spring Security
+        |
+        v
+JWT Generation
+        |
+        v
+Admin Access Token
 
-JWT is used to authenticate administrator requests without maintaining a server-side session.
+### Student Authentication
 
----
+Student Code + Date of Birth
+            |
+            v
+     Student Repository
+            |
+            v
+      Validate Student
+            |
+            v
+       Generate JWT
+            |
+            v
+     Student Access Token
 
-## Student Validation
-
-Student APIs use student-specific validation based on:
-
-- Student Code
-- Date of Birth
-
-These values are provided through request headers.
-
-A custom annotation and AOP-based validation mechanism is used so that the validation logic does not have to be repeated in every student API.
-
-    Student Request
-         |
-         v
-    @ValidateStudent
-         |
-         v
-    AOP Validation
-         |
-         v
-    Student Repository
-         |
-         +---- Student Valid ----> Student Controller
-         |
-         +---- Student Invalid --> Exception Handler
-
-This keeps the student validation logic centralized and reusable.
+The existing Student entity is used for student authentication. A separate student user table is not required.
 
 ---
 
-## Main Application Flows
+## Authorization Flow
 
-### Admin Flow
+Spring Security is used for role/authority based authorization.
 
-    Admin
-      |
-      +--> Register
-      |
-      +--> Login
-      |      |
-      |      +--> JWT Token
-      |
-      +--> Refresh Token
-      |
-      +--> Admit Student
-      |
-      +--> Create Course
-      |
-      +--> Assign Course
-      |
-      +--> Search Students
-      |
-      +--> Find Students by Course
+Request
+   |
+   v
+JWT Filter
+   |
+   v
+Validate JWT
+   |
+   v
+Create Authentication
+   |
+   v
+Check Authority
+   |
+   +-------------------+
+   |                   |
+   v                   v
+ ADMIN              STUDENT
+   |                   |
+   v                   v
+Admin APIs         Student APIs
 
-### Student Flow
+Admin APIs are protected using the ADMIN authority.
 
-    Student
-      |
-      v
-    Student Code + Date of Birth Validation
-      |
-      +--> Update Profile
-      |
-      +--> Search Courses
-      |
-      +--> Leave Course
+Student APIs are protected using the STUDENT authority.
+
+Authorization is implemented using Spring Security annotations such as:
+
+@PreAuthorize("hasAuthority('ADMIN')")
+
+and:
+
+@PreAuthorize("hasAuthority('STUDENT')")
 
 ---
 
-## Student Admission Flow
+## Student Validation Using AOP
 
-Student admission creates the student and associated address information.
+Student APIs use the custom @ValidateStudent annotation.
 
-    Admin
+The annotation is applied at class level so that the validation can be applied to the required Student Controller methods.
+
+Student Request
       |
       v
-    Admit Student
+JWT Authentication
       |
       v
-    Validate Student Code
+Check STUDENT Authority
       |
       v
-    Create Student
-      |
-      +--> Student Details
-      |
-      +--> Email
-      |
-      +--> Mobile Number
-      |
-      +--> Parent Names
-      |
-      +--> Address
+@ValidateStudent
       |
       v
-    Save to H2
+Student Code + DOB Validation
+      |
+      v
+Student Controller
+      |
+      v
+Student Service
+      |
+      v
+Repository
+
+The AOP validation ensures that the student information supplied with the request corresponds to the student being validated.
+
+---
+
+## Admin Flow
+
+The Admin manages students and courses.
+
+Admin Login
+    |
+    v
+JWT
+    |
+    v
+Admin APIs
+    |
+    +----> Admit Student
+    |
+    +----> Create Course
+    |
+    +----> Assign Course
+    |
+    +----> Search Students
+    |
+    +----> Get Students By Course
+
+Admin functionality includes:
+
+- Admin registration
+- Admin login
+- JWT refresh
+- Student admission
+- Course creation
+- Course assignment
+- Student search
+- Getting students by course
+
+---
+
+## Student Flow
+
+Student Login
+     |
+     v
+JWT
+     |
+     v
+Student APIs
+     |
+     +----> Update Profile
+     |
+     +----> Update Address
+     |
+     +----> Search Courses
+     |
+     +----> Leave Course
+
+Student functionality includes:
+
+- Student login
+- Profile update
+- Address update
+- Course search
+- Leaving an enrolled course
+
+---
+
+## Student Address Flow
 
 A student can have multiple addresses.
 
-    Student
-       |
-       +---- Address 1
-       |
-       +---- Address 2
-       |
-       +---- Address 3
+Student
+   |
+   +---- Permanent Address
+   |
+   +---- Correspondence Address
+   |
+   +---- Current Address
 
-The address types currently supported are:
+Supported address types are:
 
-    PERMANENT
-    CURRENT
-    CORRESPONDENCE
+PERMANENT
+CORRESPONDENCE
+CURRENT
+
+Address information is maintained using the Address entity and is associated with the student.
+
+During profile update, an existing address can be updated using its address ID.
+
+If an address ID supplied in the request is not found for that student, the address is skipped and the remaining valid addresses are processed.
+
+Only successfully updated addresses are returned in the response.
 
 ---
 
-## Course Management Flow
+## Course Flow
 
-    Admin
-      |
-      v
-    Create Course
-      |
-      v
-    Validate Course
-      |
-      v
-    Course Repository
-      |
-      v
-    H2 Database
+Admin
+  |
+  v
+Create Course
+  |
+  v
+Course Table
+  |
+  v
+Assign Course
+  |
+  v
+Student <----> Course
 
-Courses can subsequently be assigned to students.
+Duplicate course names are checked before creation.
 
-    Student
+For multiple course creation:
+
+Requested Courses
        |
-       +------ Course 1
+       +---- Existing Course --> Skip
        |
-       +------ Course 2
+       +---- New Course ------> Create
        |
-       +------ Course 3
-
-The student-course relationship is implemented using a many-to-many relationship.
+       v
+Final Result
 
 ---
 
 ## Database
 
-The project uses an **H2 in-memory database**.
+The application uses H2 Database, so no external database installation is required.
 
-No external database installation is required.
+The main entities are:
 
-The database configuration is available in:
+- UserEntity
+- Student
+- Address
+- Course
+- Student-Course Relationship
 
-    src/main/resources/application.properties
-
-Example configuration:
-
-    spring.datasource.url=jdbc:h2:mem:studentdb
-    spring.datasource.username=anshu
-    spring.datasource.password=password
-
-The exact values should always be taken from the project's `application.properties`.
+H2 keeps the project self-contained and easy to run on another system.
 
 ---
 
 ## H2 Console
 
-The H2 database can be viewed using the H2 web console.
+The H2 console can be accessed at:
 
-Start the application and open:
+http://localhost:8080/h2-console
 
-    http://localhost:8080/h2-console
+The database connection configuration is maintained in:
 
-Use the database configuration present in `application.properties`.
+src/main/resources/application.properties
 
-For the example configuration above:
+Example configuration:
 
-    JDBC URL : jdbc:h2:mem:studentdb
-    Username : sa
-    Password :
+spring.datasource.url=jdbc:h2:file:./data/studentdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
 
-After connecting, the database tables can be viewed and SQL queries can be executed directly from the H2 console.
-
-Example queries:
-
-    SHOW TABLES;
-
-    SELECT * FROM STUDENT;
-
-    SELECT * FROM ADDRESS;
-
-    SELECT * FROM COURSE;
-
-    SELECT * FROM STUDENT_COURSES;
+Use the exact database URL, username and password configured in your application.properties.
 
 ---
 
-## Application Setup
+## Viewing Database Tables
+
+After logging into the H2 console, the following queries can be used to view the data.
+
+### View all tables
+
+SHOW TABLES;
+
+### View users
+
+SELECT * FROM USER_ENTITY;
+
+### View students
+
+SELECT * FROM STUDENT;
+
+### View addresses
+
+SELECT * FROM ADDRESS;
+
+### View courses
+
+SELECT * FROM COURSE;
+
+### View student-course relationships
+
+SELECT * FROM STUDENT_COURSES;
+
+The exact table names may vary depending on the JPA/Hibernate naming configuration.
+
+---
+
+## Initial Data
+
+Initial application data can be loaded using SQL initialization.
+
+The SQL file can be placed inside:
+
+src/main/resources/data.sql
+
+For example, initial Admin and Course data can be inserted during application startup.
+
+This allows the application to start with predefined data without manually creating everything through the APIs.
+
+---
+
+## Running the Application
 
 ### Prerequisites
 
-Install the following:
+Install:
 
-    Java 21
-    Maven
-    Git
+- Java 21
+- Maven
 
-Verify the installations:
+Verify Java:
 
-    java -version
-    mvn -version
-    git --version
+java -version
 
----
+Verify Maven:
 
-## Clone the Project
+mvn -version
 
-Clone the repository:
+### Build
 
-    git clone <YOUR_GITHUB_REPOSITORY_URL>
+From the project root directory:
 
-Navigate to the project:
+mvn clean install
 
-    cd student-management-system
+### Start
 
----
+Using Maven:
 
-## Configure the Application
+mvn spring-boot:run
 
-Open:
+Or run the following class from IntelliJ IDEA:
 
-    src/main/resources/application.properties
+StudentManagementSystemApplication
 
-Verify the following configurations:
+The application runs by default on:
 
-- Database configuration
-- JWT configuration
-- Server port
-- H2 console configuration
-
-No external database is required.
+http://localhost:8080
 
 ---
 
-## Build the Project
+## Swagger / OpenAPI
 
-Run:
+Swagger is integrated into the application for API documentation and testing.
 
-    mvn clean install
+### Swagger UI
 
-If the build is successful, start the application using:
+http://localhost:8080/swagger-ui/index.html
 
-    mvn spring-boot:run
+### OpenAPI Specification
 
-Alternatively, the application can be started directly from IntelliJ IDEA by running:
+http://localhost:8080/v3/api-docs
 
-    StudentManagementSystemApplication
+Swagger can be used to view and test the APIs.
 
----
+For protected APIs, the appropriate JWT token must be provided.
 
-## Application URLs
-
-Once the application is running:
-
-    Application
-    http://localhost:8080
-
-    H2 Console
-    http://localhost:8080/h2-console
-
-    Swagger UI
-    http://localhost:8080/swagger-ui/index.html
+Detailed API request and response examples are maintained separately in the Postman collection and Swagger documentation.
 
 ---
 
-## API Testing
+## Recommended Testing Flow
 
-API documentation and testing are available through Swagger/OpenAPI.
+The recommended order for testing the application is:
 
-Swagger provides an interactive interface to view and execute the available APIs.
+1. Start Application
+        |
+        v
+2. Verify H2 Database
+        |
+        v
+3. Create / Login Admin
+        |
+        v
+4. Obtain Admin JWT
+        |
+        v
+5. Call Admin APIs
+        |
+        +----> Admit Student
+        |
+        +----> Create Course
+        |
+        +----> Assign Course
+        |
+        v
+6. Login as Student
+        |
+        v
+7. Obtain Student JWT
+        |
+        v
+8. Call Student APIs
+        |
+        +----> Update Profile
+        |
+        +----> Update Address
+        |
+        +----> Search Courses
+        |
+        +----> Leave Course
 
-A separate Postman collection is also provided with the project for API testing and complete request examples.
-
-Detailed API request and response documentation is intentionally maintained in Swagger and Postman rather than duplicated in this README.
+Detailed API request and response examples are maintained separately in the Postman collection and Swagger documentation.
 
 ---
 
-## Database Relationships
+## Security Flow
 
-The main entities are:
-
-    User
-     |
-     |-- Administrator
-
-
-    Student
-     |
-     |-- Address (One-to-Many)
-     |
-     |-- Course (Many-to-Many)
-
-
-    Course
-     |
-     |-- Students
-
-The major database structure is:
-
-    USER
-     |
-     +-- Administrator
-
-
-    STUDENT
-     |
-     +-- ADDRESS
-     |
-     +-- STUDENT_COURSES
+Request
+   |
+   v
+JWT Filter
+   |
+   v
+Validate JWT
+   |
+   v
+Create Authentication
+   |
+   v
+Check Authority
+   |
+   +-------------+
+   |             |
+ ADMIN         STUDENT
+   |             |
+   v             v
+Admin APIs    Student APIs
                   |
-                  +-- COURSE
+                  v
+           @ValidateStudent
+                  |
+                  v
+          Student Validation
+                  |
+                  v
+               Service
+                  |
+                  v
+              Repository
+
+The application uses stateless authentication:
+
+SessionCreationPolicy.STATELESS
+
+Authentication is maintained through JWT rather than server-side HTTP sessions.
 
 ---
 
 ## Exception Handling
 
-The application uses centralized exception handling.
+Application-specific validation errors are handled using:
 
-    Controller
+CustomValidationException
+
+A global exception handler provides a consistent error response structure.
+
+Spring ProblemDetail is used for API error responses.
+
+Example:
+
+{
+    "status": 403,
+    "title": "Forbidden",
+    "detail": "Access Denied"
+}
+
+Centralized exception handling keeps error handling separate from the controller and service logic.
+
+---
+
+## Design Approach
+
+The application follows a layered Spring Boot architecture:
+
+Controller
+    |
+    v
+Service Interface
+    |
+    v
+Service Implementation
+    |
+    v
+Repository
+    |
+    v
+Entity
+    |
+    v
+H2 Database
+
+Cross-cutting concerns are handled separately:
+
+Security
+   |
+   +----> Spring Security
+   +----> JWT
+   +----> Role-based Authorization
+
+Validation
+   |
+   +----> Custom Annotation
+   +----> Spring AOP
+
+API Documentation
+   |
+   +----> Swagger / OpenAPI
+
+Exception Handling
+   |
+   +----> Global Exception Handler
+
+Persistence
+   |
+   +----> Spring Data JPA
+   +----> H2 Database
+
+---
+
+## Running the Project on Another System
+
+Clone / Copy Project
         |
         v
-    Service
+Install Java 21
         |
         v
-    Business Validation
+Install Maven
         |
-        +---- Success ----> Response
+        v
+Open Project in IntelliJ IDEA
         |
-        +---- Exception
-                 |
-                 v
-          Exception Handler
-                 |
-                 v
-          Standard Error Response
+        v
+Verify application.properties
+        |
+        v
+Run mvn clean install
+        |
+        v
+Start Application
+        |
+        v
+Open Swagger
+        |
+        v
+Authenticate Admin / Student
+        |
+        v
+Test APIs
 
-Custom validation exceptions are used for business-specific validation failures.
-
----
-
-## AOP
-
-Spring AOP is used for cross-cutting functionality, particularly student validation.
-
-Instead of implementing the same validation code in every student API, the validation is centralized.
-
-    Student API 1 ----\
-                        \
-    Student API 2 ------> AOP Validation
-                        /
-    Student API 3 ----/
-                      \
-    Student API 4 -----\
-
-This improves code reuse and keeps the controllers focused on their primary responsibilities.
+No external database installation is required because the application uses H2.
 
 ---
 
-## Important Notes
+## Configuration to Verify
 
-- The application uses an H2 in-memory database.
-- No MySQL or PostgreSQL installation is required.
-- Database data is available while the application is running.
-- Initial data can be loaded using `data.sql`.
-- JWT is used for administrator authentication.
-- Student APIs use student code and date of birth validation.
-- Swagger is available for API exploration.
-- Postman collection is provided for API testing.
-- All application configuration is maintained in `application.properties`.
+Before running the application, verify the following in:
 
----
+src/main/resources/application.properties
 
-## Quick Start
-
-    1. Clone the repository
-           |
-           v
-    2. Open the project
-           |
-           v
-    3. Verify application.properties
-           |
-           v
-    4. Run: mvn clean install
-           |
-           v
-    5. Run: mvn spring-boot:run
-           |
-           v
-    6. Initial data is loaded
-           |
-           v
-    7. Use Swagger / Postman
-           |
-           v
-    8. Use H2 Console to inspect database
+- Server port
+- H2 datasource URL
+- H2 username
+- H2 password
+- JPA/Hibernate configuration
+- JWT secret key
+- JWT expiration time
+- SQL initialization settings
 
 ---
 
-## Author
+## Summary
 
-**Anshu Singh**
+The Student Management System provides:
 
-Java / Spring Boot Developer
+- Admin registration and authentication
+- Student authentication
+- JWT-based authentication
+- Role-based authorization
+- Method-level authorization using @PreAuthorize
+- AOP-based student validation
+- Student admission
+- Student profile management
+- Student address management
+- Course creation
+- Course assignment
+- Course search
+- Student search
+- Student-course management
+- H2 database persistence
+- Swagger/OpenAPI documentation
+- DTO-based API communication
+- Global exception handling
+- Service-layer unit testing
+
+The application follows a clean layered Spring Boot architecture with security, validation, business logic, persistence and documentation maintained as separate concerns.
