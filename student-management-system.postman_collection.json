@@ -123,20 +123,41 @@
       ]
     },
     {
-      "name": "/register",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
-    },
-    {
-      "name": "/login",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
+      "name": "Auth",
+      "item": [
+        {
+          "name": "/admin/login",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/admin/register",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/student/login",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "/refresh-token",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
