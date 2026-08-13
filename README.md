@@ -587,8 +587,8 @@ Use the JDBC URL, username and password configured in:
 For example, if the project is configured with:
 
     spring.datasource.url=jdbc:h2:file:./data/studentdb
-    spring.datasource.username=sa
-    spring.datasource.password=
+    spring.datasource.username=anshu
+    spring.datasource.password=password
 
 then those same values should be entered in the H2 console.
 
