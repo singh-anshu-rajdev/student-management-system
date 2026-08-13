@@ -6,14 +6,17 @@ import com.anshu.student_management_system.DTO.StudentProfileUpdateDTO;
 import com.anshu.student_management_system.DTO.StudentResponseDTO;
 import com.anshu.student_management_system.Entities.Address;
 import com.anshu.student_management_system.Entities.Student;
+import com.anshu.student_management_system.Entities.UserEntity;
 import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
 import com.anshu.student_management_system.ExceptionHandler.ErrorCode;
 import com.anshu.student_management_system.Repositories.AddressRepository;
 import com.anshu.student_management_system.Repositories.CourseRepository;
 import com.anshu.student_management_system.Repositories.StudentRepository;
+import com.anshu.student_management_system.Repositories.UserEntityRepository;
 import com.anshu.student_management_system.Service.StudentService;
 import com.anshu.student_management_system.Utilities.AddressType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -33,14 +36,25 @@ public class StudentServiceImpl implements StudentService {
     @Autowired
     private CourseRepository courseRepository;
 
+    @Autowired
+    UserEntityRepository userEntityRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
 
     @Override
     public StudentResponseDTO updateProfile(String studentCode, LocalDate dateOfBirth, StudentProfileUpdateDTO request) {
 
+        Boolean isUpdate = Boolean.FALSE;
+
         Student student = getLoggedInStudent(studentCode);
 
         student.setName(request.getName());
-        student.setDateOfBirth(request.getDateOfBirth());
+        if(!student.getDateOfBirth().equals(request.getDateOfBirth())){
+            isUpdate = Boolean.TRUE;
+            student.setDateOfBirth(request.getDateOfBirth());
+        }
         student.setGender(request.getGender());
         student.setEmail(request.getEmail());
         student.setMobileNumber(request.getMobileNumber());
@@ -63,7 +77,18 @@ public class StudentServiceImpl implements StudentService {
 
         response.setStatusMessage("Profile updated successfully");
 
+        if(isUpdate){
+            updateLoginDetails(request.getDateOfBirth(), studentCode);
+        }
+
+
         return response;
+    }
+
+    private void updateLoginDetails(LocalDate dateOfBirth, String studentCode){
+        UserEntity userEntity = userEntityRepository.findByUserName(studentCode).orElseThrow(() -> new CustomValidationException(ErrorCode.ERR_AP_2003));
+        userEntity.setPassword(passwordEncoder.encode(dateOfBirth.toString()));
+        userEntityRepository.save(userEntity);
     }
 
     private StudentResponseDTO updateAddress(Student savedStudent, StudentProfileUpdateDTO request, StudentResponseDTO response) {
@@ -180,5 +205,4 @@ public class StudentServiceImpl implements StudentService {
         return studentRepository.findByStudentCode(studentCode).orElseThrow(() ->
                         new CustomValidationException(ErrorCode.ERR_AP_2003));
     }
-
 }

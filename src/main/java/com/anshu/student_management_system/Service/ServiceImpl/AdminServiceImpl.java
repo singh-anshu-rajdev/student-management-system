@@ -16,6 +16,7 @@ import com.anshu.student_management_system.Utilities.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,11 @@ public class AdminServiceImpl implements AdminService {
 
         // Never store the plain-text password
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-        user.setRole(Roles.ADMIN.toString());
+        if(registerDTO.getRole() != null && !registerDTO.getRole().isEmpty()) {
+            user.setRole(registerDTO.getRole());
+        } else {
+            user.setRole(Roles.ADMIN.toString());
+        }
         user.setUserName(registerDTO.getUserName());
 
         UserEntity savedUser = userEntityRepository.save(user);
@@ -67,6 +72,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public StudentResponseDTO admitStudent(StudentAdmissionRequestDTO request) {
 
         if (studentRepository.existsByStudentCode(request.getStudentCode())) {
@@ -128,6 +134,12 @@ public class AdminServiceImpl implements AdminService {
 
         response.setAddressRequestDTOList(addressResponses);
         response.setStatusMessage("Student admitted successfully");
+
+        RegistrationRequestDTO registrationRequestDTO = new RegistrationRequestDTO();
+        registrationRequestDTO.setUserName(request.getStudentCode());
+        registrationRequestDTO.setPassword(request.getDateOfBirth().toString());
+        registrationRequestDTO.setRole(Roles.STUDENT.toString());
+        registerUser(registrationRequestDTO);
 
         return response;
     }

@@ -1,6 +1,7 @@
 package com.anshu.student_management_system.Service;
 
 import com.anshu.student_management_system.DTO.LoginResponseDTO;
+import com.anshu.student_management_system.DTO.StudentLoginDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoder;
@@ -22,5 +23,7 @@ public interface JwtService {
 
     public LoginResponseDTO login(UserDetails userDetails);
 
-    public LoginResponseDTO generateTokenFromRefreshToken(UserDetails userDetails, String refreshToken);
+    public LoginResponseDTO studentLogin(StudentLoginDTO studentLoginDTO);
+
+    public LoginResponseDTO generateTokenFromRefreshToken(String refreshToken);
 }

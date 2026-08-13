@@ -1,18 +1,25 @@
 package com.anshu.student_management_system.Service.ServiceImpl;
 
 import com.anshu.student_management_system.DTO.LoginResponseDTO;
+import com.anshu.student_management_system.DTO.StudentLoginDTO;
+import com.anshu.student_management_system.Entities.Student;
+import com.anshu.student_management_system.Entities.UserEntity;
 import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
 import com.anshu.student_management_system.ExceptionHandler.ErrorCode;
+import com.anshu.student_management_system.Repositories.StudentRepository;
+import com.anshu.student_management_system.Repositories.UserEntityRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import com.anshu.student_management_system.Service.JwtService;
 
 import java.security.Key;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 
@@ -27,6 +34,12 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${security.jwt.refresh-expiration-time}")
     private Long refreshTokenExpiration;
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private UserEntityRepository userEntityRepository;
 
     public String getUserName(String token) {
         return extractClaims(token,claim -> claim.get("username",String.class));
@@ -48,10 +61,41 @@ public class JwtServiceImpl implements JwtService {
         return extractClaims(token, Claims::getExpiration).before(new Date());
     }
 
+    public LoginResponseDTO studentLogin(StudentLoginDTO studentLoginDTO){
+
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        if(verifyStudent(studentLoginDTO.getStudentCode(), studentLoginDTO.getDateOfBirth())){
+            loginResponseDTO.setStatusMessage("Login Successful");
+        }
+        loginResponseDTO.setToken(generateStudentToken(studentLoginDTO));
+        loginResponseDTO.setRefreshToken(generateStudentRefreshToken(studentLoginDTO));
+        return loginResponseDTO;
+    }
+
+    private String generateStudentToken(StudentLoginDTO studentLoginDTO) {
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("username",studentLoginDTO.getStudentCode());
+        return buildToken(claims);
+    }
+
+    private Boolean verifyStudent(String studentCode, LocalDate dateOfBirth) {
+        Student student = studentRepository.findByStudentCodeAndDateOfBirth(studentCode, dateOfBirth).orElseThrow(() ->
+                new CustomValidationException(ErrorCode.ERR_AP_2003));
+        return true;
+    }
+
+    public String generateStudentRefreshToken(StudentLoginDTO studentLoginDTO) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", studentLoginDTO.getStudentCode());
+        claims.put("tokenType", "REFRESH");
+        return buildRefreshToken(claims);
+    }
+
     public LoginResponseDTO login(UserDetails userDetails) {
         LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
         loginResponseDTO.setToken(generateToken(userDetails));
         loginResponseDTO.setRefreshToken(generateRefreshToken(userDetails));
+        loginResponseDTO.setStatusMessage("Login Successful");
         return loginResponseDTO;
     }
 
@@ -90,11 +134,13 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
-    public LoginResponseDTO generateTokenFromRefreshToken(UserDetails userDetails, String refreshToken) {
-        ;
+    public LoginResponseDTO generateTokenFromRefreshToken(String refreshToken) {
         LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
-        loginResponseDTO.setToken(generateTokenWithRefreshToken(userDetails, refreshToken));
-        loginResponseDTO.setRefreshToken(generateRefreshToken(userDetails));
+
+        String username = getUserName(refreshToken);
+        UserEntity userEntity = userEntityRepository.findByUserName(username).orElseThrow(() -> new CustomValidationException(ErrorCode.ERR_AP_2001));
+        loginResponseDTO.setToken(generateTokenWithRefreshToken(userEntity, refreshToken));
+        loginResponseDTO.setRefreshToken(generateRefreshToken(userEntity));
         return loginResponseDTO;
     }
 
