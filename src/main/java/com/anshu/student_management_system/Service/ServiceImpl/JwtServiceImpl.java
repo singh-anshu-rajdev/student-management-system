@@ -23,6 +23,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 
+import static com.anshu.student_management_system.Utilities.IStaticConstants.*;
+
 @Service
 public class JwtServiceImpl implements JwtService {
 
@@ -42,7 +44,7 @@ public class JwtServiceImpl implements JwtService {
     private UserEntityRepository userEntityRepository;
 
     public String getUserName(String token) {
-        return extractClaims(token,claim -> claim.get("username",String.class));
+        return extractClaims(token,claim -> claim.get(USERNAME,String.class));
     }
 
     private <T> T extractClaims(String token, Function<Claims,T> claimResolver) {
@@ -65,7 +67,7 @@ public class JwtServiceImpl implements JwtService {
 
         LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
         if(verifyStudent(studentLoginDTO.getStudentCode(), studentLoginDTO.getDateOfBirth())){
-            loginResponseDTO.setStatusMessage("Login Successful");
+            loginResponseDTO.setStatusMessage(LOGIN_SUCCESSFUL);
         }
         loginResponseDTO.setToken(generateStudentToken(studentLoginDTO));
         loginResponseDTO.setRefreshToken(generateStudentRefreshToken(studentLoginDTO));
@@ -74,7 +76,7 @@ public class JwtServiceImpl implements JwtService {
 
     private String generateStudentToken(StudentLoginDTO studentLoginDTO) {
         Map<String,Object> claims = new HashMap<>();
-        claims.put("username",studentLoginDTO.getStudentCode());
+        claims.put(USERNAME,studentLoginDTO.getStudentCode());
         return buildToken(claims);
     }
 
@@ -86,8 +88,8 @@ public class JwtServiceImpl implements JwtService {
 
     public String generateStudentRefreshToken(StudentLoginDTO studentLoginDTO) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", studentLoginDTO.getStudentCode());
-        claims.put("tokenType", "REFRESH");
+        claims.put(USERNAME, studentLoginDTO.getStudentCode());
+        claims.put(TOKEN_TYPE, REFRESH_TOKEN);
         return buildRefreshToken(claims);
     }
 
@@ -95,13 +97,13 @@ public class JwtServiceImpl implements JwtService {
         LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
         loginResponseDTO.setToken(generateToken(userDetails));
         loginResponseDTO.setRefreshToken(generateRefreshToken(userDetails));
-        loginResponseDTO.setStatusMessage("Login Successful");
+        loginResponseDTO.setStatusMessage(LOGIN_SUCCESSFUL);
         return loginResponseDTO;
     }
 
     private String generateToken(UserDetails userDetails) {
         Map<String,Object> claims = new HashMap<>();
-        claims.put("username",userDetails.getUsername());
+        claims.put(USERNAME,userDetails.getUsername());
         return buildToken(claims);
     }
 
@@ -120,8 +122,8 @@ public class JwtServiceImpl implements JwtService {
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", userDetails.getUsername());
-        claims.put("tokenType", "REFRESH");
+        claims.put(USERNAME, userDetails.getUsername());
+        claims.put(TOKEN_TYPE, REFRESH_TOKEN);
         return buildRefreshToken(claims);
     }
 

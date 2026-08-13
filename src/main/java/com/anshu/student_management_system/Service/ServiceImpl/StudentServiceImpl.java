@@ -18,11 +18,13 @@ import com.anshu.student_management_system.Utilities.AddressType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import static com.anshu.student_management_system.Utilities.IStaticConstants.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -75,7 +77,7 @@ public class StudentServiceImpl implements StudentService {
 
         response = updateAddress(savedStudent, request, response);
 
-        response.setStatusMessage("Profile updated successfully");
+        response.setStatusMessage(PROFILE_UPDATED_SUCCESSFULLY);
 
         if(isUpdate){
             updateLoginDetails(request.getDateOfBirth(), studentCode);
@@ -198,7 +200,7 @@ public class StudentServiceImpl implements StudentService {
             throw new CustomValidationException(ErrorCode.ERR_AP_2006);
         }
         studentRepository.save(student);
-        return "Course has been successfully removed from the student's enrolled courses.";
+        return COURSE_REMOVED_SUCCESSFULLY;
     }
 
     private Student getLoggedInStudent(String studentCode) {

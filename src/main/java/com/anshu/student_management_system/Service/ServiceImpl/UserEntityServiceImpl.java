@@ -16,21 +16,6 @@ public class UserEntityServiceImpl implements UserDetailsService {
     @Autowired
     UserEntityRepository userEntityRepository;
 
-    public RegistrationResponseDTO registerUser(RegistrationRequestDTO registerDTO){
-        UserEntity user = new UserEntity();
-        user.setUserName(registerDTO.getUserName());
-        user.setPassword(registerDTO.getPassword());
-        user.setRole(registerDTO.getRole());
-        user = userEntityRepository.save(user);
-        RegistrationResponseDTO response = new RegistrationResponseDTO();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setRole(user.getRole());
-        response.setStatusMessage("User Registered Successfully");
-        return response;
-
-    }
-
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userEntityRepository.findByUserName(username).orElseThrow(()->new UsernameNotFoundException("User Not Found"));

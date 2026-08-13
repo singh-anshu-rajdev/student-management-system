@@ -12,6 +12,7 @@ import com.anshu.student_management_system.Repositories.StudentRepository;
 import com.anshu.student_management_system.Repositories.UserEntityRepository;
 import com.anshu.student_management_system.Service.AdminService;
 import com.anshu.student_management_system.Utilities.AddressType;
+import com.anshu.student_management_system.Utilities.IStaticConstants;
 import com.anshu.student_management_system.Utilities.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.anshu.student_management_system.ExceptionHandler.ErrorCode.*;
+import static com.anshu.student_management_system.Utilities.IStaticConstants.*;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -66,7 +68,7 @@ public class AdminServiceImpl implements AdminService {
         response.setId(savedUser.getId());
         response.setUsername(savedUser.getUsername());
         response.setRole(savedUser.getRole());
-        response.setStatusMessage("User Registered Successfully");
+        response.setStatusMessage(USER_REGISTERED_SUCCESSFULLY);
 
         return response;
     }
@@ -133,7 +135,7 @@ public class AdminServiceImpl implements AdminService {
         });
 
         response.setAddressRequestDTOList(addressResponses);
-        response.setStatusMessage("Student admitted successfully");
+        response.setStatusMessage(STUDENT_REGISTERED_SUCCESSFULLY);
 
         RegistrationRequestDTO registrationRequestDTO = new RegistrationRequestDTO();
         registrationRequestDTO.setUserName(request.getStudentCode());
@@ -166,7 +168,7 @@ public class AdminServiceImpl implements AdminService {
         response.setCourseName(course.getCourseName());
         response.setDescription(course.getDescription());
         response.setStudentCode(student.getStudentCode());
-        response.setStatusMessage("Course assigned successfully");
+        response.setStatusMessage(COURSE_ASSIGNED_SUCCESSFULLY);
 
         return response;
     }
@@ -275,19 +277,19 @@ public class AdminServiceImpl implements AdminService {
 
         if (!alreadyExistingCourses.isEmpty() && !createdCourses.isEmpty()) {
             response.setStatusMessage(
-                    "Courses created successfully: "
+                    COURSES_CREATED_SUCCESSFULLY
                             + String.join(", ", createdCourses)
-                            + ". The following courses already exist and were skipped: "
+                            + ALREADY_EXISTING_COURSES
                             + String.join(", ", alreadyExistingCourses)
             );
         } else if (!alreadyExistingCourses.isEmpty()) {
             response.setStatusMessage(
-                    "No courses were created. The following courses already exist: "
+                    NO_COURSES_CREATED
                             + String.join(", ", alreadyExistingCourses)
             );
         } else {
             response.setStatusMessage(
-                    "Courses created successfully: "
+                    COURSE_CREATED_SUCCESSFULLY
                             + String.join(", ", createdCourses)
             );
         }

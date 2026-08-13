@@ -2,6 +2,7 @@ package com.anshu.student_management_system.Config;
 
 import com.anshu.student_management_system.Service.JwtService;
 import com.anshu.student_management_system.Service.ServiceImpl.UserEntityServiceImpl;
+import com.anshu.student_management_system.Utilities.IStaticConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,9 +33,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader(IStaticConstants.AUTHORIZATION_HEADER);
 
-        if(null==authHeader || !authHeader.startsWith("Bearer ")){
+        if(null==authHeader || !authHeader.startsWith(IStaticConstants.BEARER)){
             filterChain.doFilter(request,response);
             return;
         }
