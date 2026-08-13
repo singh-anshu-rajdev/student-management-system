@@ -624,19 +624,6 @@ View student-course relationships:
 
 The exact table names can vary depending on the Hibernate/JPA naming configuration.
 
----
-
-## Initial Database Data
-
-Initial Admin and Course data can be maintained in:
-
-    src/main/resources/data.sql
-
-When SQL initialization is enabled, the SQL file is executed during application startup.
-
-This allows the application to start with predefined data without manually creating the initial Admin and Courses through the APIs.
-
----
 
 ## Database Relationship
 
