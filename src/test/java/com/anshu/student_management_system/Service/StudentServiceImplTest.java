@@ -7,10 +7,12 @@ import com.anshu.student_management_system.DTO.StudentResponseDTO;
 import com.anshu.student_management_system.Entities.Address;
 import com.anshu.student_management_system.Entities.Course;
 import com.anshu.student_management_system.Entities.Student;
+import com.anshu.student_management_system.Entities.UserEntity;
 import com.anshu.student_management_system.ExceptionHandler.CustomValidationException;
 import com.anshu.student_management_system.Repositories.AddressRepository;
 import com.anshu.student_management_system.Repositories.CourseRepository;
 import com.anshu.student_management_system.Repositories.StudentRepository;
+import com.anshu.student_management_system.Repositories.UserEntityRepository;
 import com.anshu.student_management_system.Service.ServiceImpl.StudentServiceImpl;
 import com.anshu.student_management_system.Utilities.AddressType;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,8 +45,14 @@ class StudentServiceImplTest {
     @Mock
     private CourseRepository courseRepository;
 
+    @Mock
+    private UserEntityRepository userEntityRepository;
+
     @InjectMocks
     private StudentServiceImpl studentService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     private Student student;
     private Course javaCourse;
@@ -97,8 +106,14 @@ class StudentServiceImplTest {
         request.setParentsNames("Rajesh Sharma");
         request.setAddress(new ArrayList<>());
 
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(1L);
+        userEntity.setUserName("STU001");
+
         when(studentRepository.findByStudentCode("STU001")).thenReturn(Optional.of(student));
         when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(userEntityRepository.findByUserName(anyString())).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("encodedPassword");
 
         StudentResponseDTO response = studentService.updateProfile("STU001", LocalDate.of(2000, 1, 10), request);
 
@@ -142,8 +157,14 @@ class StudentServiceImplTest {
         request.setParentsNames("Suresh Kumar");
         request.setAddress(new ArrayList<>());
 
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(1L);
+        userEntity.setUserName("STU001");
+
         when(studentRepository.findByStudentCode("STU001")).thenReturn(Optional.of(student));
         when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(userEntityRepository.findByUserName(anyString())).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.encode(any(CharSequence.class))).thenReturn("encodedPassword");
 
         studentService.updateProfile("STU001", LocalDate.of(2000, 1, 10), request);
 
@@ -527,6 +548,10 @@ class StudentServiceImplTest {
         requestAddress.setCity("Mumbai");
         requestAddress.setState("Maharashtra");
         requestAddress.setPostalCode("400001");
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(1L);
+        userEntity.setUserName("STU001");
 
         StudentProfileUpdateDTO request = new StudentProfileUpdateDTO();
         request.setAddress(new ArrayList<>(List.of(requestAddress)));

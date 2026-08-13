@@ -51,7 +51,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = getLoggedInStudent(studentCode);
 
         student.setName(request.getName());
-        if(!student.getDateOfBirth().equals(request.getDateOfBirth())){
+        if(null!=request.getDateOfBirth() && !student.getDateOfBirth().equals(request.getDateOfBirth())){
             isUpdate = Boolean.TRUE;
             student.setDateOfBirth(request.getDateOfBirth());
         }

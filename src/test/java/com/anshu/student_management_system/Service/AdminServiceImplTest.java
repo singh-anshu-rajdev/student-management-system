@@ -166,16 +166,18 @@ class AdminServiceImplTest {
         savedStudent.setAddresses(new ArrayList<>());
 
         when(studentRepository.save(any(Student.class))).thenReturn(savedStudent);
+
+        UserEntity savedUser = new UserEntity();
+        savedUser.setId(1L);
+        when(userEntityRepository.save(any(UserEntity.class))).thenReturn(savedUser);
+
         StudentResponseDTO response = adminService.admitStudent(studentAdmissionRequest);
 
         assertNotNull(response);
 
         assertEquals(1L, response.getId());
         assertEquals("Rahul", response.getName());
-        assertEquals(
-                LocalDate.of(2000, 1, 10),
-                response.getDateOfBirth()
-        );
+        assertEquals(LocalDate.of(2000, 1, 10), response.getDateOfBirth());
         assertEquals("Male", response.getGender());
         assertEquals("STU001", response.getStudentCode());
         assertEquals("rahul@gmail.com", response.getEmail());
@@ -185,7 +187,15 @@ class AdminServiceImplTest {
 
         verify(studentRepository).existsByStudentCode("STU001");
 
-        verify(studentRepository).save(any(Student.class));
+        verify(studentRepository).save(argThat(student ->
+                student.getName().equals("Rahul")
+                        && student.getDateOfBirth().equals(LocalDate.of(2000, 1, 10))
+                        && student.getGender().equals("Male")
+                        && student.getStudentCode().equals("STU001")
+                        && student.getEmail().equals("rahul@gmail.com")
+                        && student.getMobileNumber().equals("9876543210")
+                        && student.getParentsNames().equals("Rajesh Kumar")
+        ));
     }
 
     @Test
@@ -207,7 +217,10 @@ class AdminServiceImplTest {
 
         Student savedStudent = createStudent();
 
+        UserEntity savedUser = new UserEntity();
+        savedUser.setId(1L);
         when(studentRepository.save(any(Student.class))).thenReturn(savedStudent);
+        when(userEntityRepository.save(any(UserEntity.class))).thenReturn(savedUser);
 
         adminService.admitStudent(studentAdmissionRequest);
 
@@ -254,7 +267,11 @@ class AdminServiceImplTest {
 
         savedStudent.setAddresses(List.of(savedAddress));
 
+        UserEntity savedUser = new UserEntity();
+        savedUser.setId(1L);
+
         when(studentRepository.save(any(Student.class))).thenReturn(savedStudent);
+        when(userEntityRepository.save(any(UserEntity.class))).thenReturn(savedUser);
 
         StudentResponseDTO response = adminService.admitStudent(studentAdmissionRequest);
 
@@ -276,7 +293,11 @@ class AdminServiceImplTest {
 
         studentAdmissionRequest.setAddresses(null);
 
+        UserEntity savedUser = new UserEntity();
+        savedUser.setId(1L);
+
         when(studentRepository.existsByStudentCode("STU001")).thenReturn(false);
+        when(userEntityRepository.save(any(UserEntity.class))).thenReturn(savedUser);
 
         Student savedStudent = createStudent();
         savedStudent.setAddresses(new ArrayList<>());
