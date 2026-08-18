@@ -18,7 +18,7 @@ public class IStaticConstants {
     public static final String COURSES_CREATED_SUCCESSFULLY = "Courses created successfully: ";
     public static final String ALREADY_EXISTING_COURSES = ". The following courses already exist and were skipped: ";
     public static final String NO_COURSES_CREATED = "No courses were created. The following courses already exist: ";
-    public static final String COURSE_CREATED_SUCCESSFULLY = "Course created successfully";
+    public static final String COURSE_CREATED_SUCCESSFULLY = "Courses created successfully: ";
     public static final String USERNAME = "username";
     public static final String LOGIN_SUCCESSFUL = "Login Successful";
     public static final String TOKEN_TYPE = "tokenType";

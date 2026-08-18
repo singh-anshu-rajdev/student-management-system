@@ -48,5 +48,4 @@ public class StudentValidationAspect {
                 .orElseThrow(() -> new CustomValidationException(ErrorCode.ERR_AP_2010));
         return joinPoint.proceed();
     }
-
 }

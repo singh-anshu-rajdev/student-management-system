@@ -183,7 +183,7 @@ class AdminServiceImplTest {
         assertEquals("rahul@gmail.com", response.getEmail());
         assertEquals("9876543210", response.getMobileNumber());
         assertEquals("Rajesh Kumar", response.getParentsNames());
-        assertEquals("Student admitted successfully", response.getStatusMessage());
+        assertEquals("Student registered successfully", response.getStatusMessage());
 
         verify(studentRepository).existsByStudentCode("STU001");
 
